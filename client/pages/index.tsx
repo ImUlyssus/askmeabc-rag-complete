@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const companies = [
   {
@@ -28,57 +28,63 @@ export default function Home() {
   const [selectedCompany, setSelectedCompany] = useState<string>("InnoTech Solutions");
   const [chatInput, setChatInput] = useState<string>("");
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   interface Message {
     type: "user" | "ai";
     message: string;
   }
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
-
-const handleChatSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  if (chatInput.trim()) {
-    // Add user message to chat history
-    setChatMessages((prevMessages) => [
-      ...prevMessages,
-      { type: "user", message: chatInput },
-    ]);
-
-    // Immediately clear the input field
-    setChatInput('');
-
-    try {
-      const response = await fetch('http://localhost:8080/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_input: chatInput, selectedCompany }),
-      });
-      const data = await response.json();
-
-      if (response.ok) {
-        // Add AI response to chat history
-        setChatMessages((prevMessages) => [
-          ...prevMessages,
-          { type: "ai", message: data.response },
-        ]);
-      } else {
-        console.error('Error:', data.error);
-      }
-    } catch (error) {
-      console.error('Error submitting chat:', error);
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      // Scroll to the bottom of the chat container
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
+  }, [chatMessages]); // Trigger effect when chatMessages changes
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    // Disable the send button for 3 seconds
-    setIsButtonDisabled(true);
-    setTimeout(() => {
-      setIsButtonDisabled(false);
-    }, 3000);
-  }
-};
+    if (chatInput.trim()) {
+      // Add user message to chat history
+      setChatMessages((prevMessages) => [
+        ...prevMessages,
+        { type: "user", message: chatInput },
+      ]);
 
-  
+      // Immediately clear the input field
+      setChatInput('');
+
+      try {
+        const response = await fetch('http://localhost:8080/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ user_input: chatInput, selectedCompany }),
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+          // Add AI response to chat history
+          setChatMessages((prevMessages) => [
+            ...prevMessages,
+            { type: "ai", message: data.response },
+          ]);
+        } else {
+          console.error('Error:', data.error);
+        }
+      } catch (error) {
+        console.error('Error submitting chat:', error);
+      }
+
+      // Disable the send button for 3 seconds
+      setIsButtonDisabled(true);
+      setTimeout(() => {
+        setIsButtonDisabled(false);
+      }, 3000);
+    }
+  };
+
+
 
 
   // Invoke the function when the dropdown changes
@@ -197,15 +203,41 @@ const handleChatSubmit = async (e: React.FormEvent) => {
           </div>
           {/* Summary */}
           <div
-            style={{
-              border: "1px solid #ccc",
-              borderRadius: "15px",
-              marginTop: "10px",
-            }}
-          >
-            <h3 style={{ padding: "10px", borderTopLeftRadius: "15px", borderTopRightRadius: "15px", backgroundColor: "#0395D8", color: "white", fontSize: '25px', fontWeight: "bold", textAlign: "center" }}>{selectedCompany} Detail</h3>
-            <p style={{ padding: '10px' }}>{selectedCompanySummary}</p>
-          </div>
+  style={{
+    border: "1px solid #ccc",
+    borderRadius: "15px",
+    marginTop: "10px",
+    height: "60vh", // Set height to 65vh
+    overflowY: "auto", // Enable vertical scrolling
+    display: "flex", // Enable flexbox for the container
+    flexDirection: "column", // Stack children vertically
+  }}
+>
+  <h3
+    style={{
+      padding: "10px",
+      borderTopLeftRadius: "15px",
+      borderTopRightRadius: "15px",
+      backgroundColor: "#0395D8",
+      color: "white",
+      fontSize: "25px",
+      fontWeight: "bold",
+      textAlign: "center",
+      margin: 0, // Remove margin to prevent extra space
+    }}
+  >
+    {selectedCompany} Detail
+  </h3>
+  <div
+    style={{
+      padding: '10px',
+      overflowY: 'auto', // Enable scrolling for the content below
+      flex: 1, // Allow this section to take up remaining space
+    }}
+  >
+    <p style={{ margin: 0 }}>{selectedCompanySummary}</p>
+  </div>
+</div>
         </div>
 
         {/* Right Section */}
@@ -213,7 +245,7 @@ const handleChatSubmit = async (e: React.FormEvent) => {
           style={{
             display: "flex",
             flexDirection: "column", // Stacks header, messages, and input vertically
-            height: "80vh", // Fixed height for the chat box
+            height: "90vh", // Fixed height for the chat box
             border: "1px solid #ccc",
             borderRadius: "5px",
             width: "50%"
@@ -237,90 +269,94 @@ const handleChatSubmit = async (e: React.FormEvent) => {
 
           {/* Messages Area */}
           <div
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              padding: "10px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-            }}
-          >
-            {chatMessages.map((message, index) => (
-  <div
-    key={index}
-    style={{
-      display: "flex",
-      justifyContent: message.type === "user" ? "flex-end" : "flex-start",
-      maxWidth: "70%",
-      alignSelf: message.type === "user" ? "flex-end" : "flex-start",
-      alignItems: "center", // Aligns content vertically
-    }}
-  >
-    {/* Chatbot Image for AI Messages */}
-    {message.type === "ai" && (
-      <img
-        src="/chatbot.jpg"
-        alt="Chatbot"
-        style={{
-          width: "40px",
-          height: "40px",
-          borderRadius: "50%",
-          objectFit: "cover",
-          marginRight: "5px", // Adds space between the image and the message
-          marginTop: "auto",
-        }}
-      />
-    )}
-    <span
-      style={{
-        backgroundColor: message.type === "user" ? "#fff" : "#f0f8ff",
-        border: "1px solid #007bff",
-        borderRadius: "5px",
-        padding: "10px",
-      }}
-    >
-      {message.message}
-    </span>
-  </div>
-))}
-          </div>
-          {/* Chat Input */}
-          <form
-      onSubmit={handleChatSubmit}
-      style={{
-        display: 'flex',
-        padding: '10px',
-        borderTop: '1px solid #ccc',
-      }}
-    >
-      <input
-        type="text"
-        value={chatInput}
-        onChange={(e) => setChatInput(e.target.value)}
-        placeholder="Type your question..."
         style={{
           flex: 1,
-          padding: '10px',
-          border: '1px solid #ccc',
-          borderRadius: '5px 0 0 5px',
-        }}
-      />
-      <button
-        type="submit"
-        disabled={isButtonDisabled} // Disable button when `isButtonDisabled` is true
-        style={{
-          backgroundColor: isButtonDisabled ? '#ccc' : '#007bff', // Change color when disabled
-          color: 'white',
-          padding: '10px 15px',
-          border: 'none',
-          borderRadius: '0 5px 5px 0',
-          cursor: isButtonDisabled ? 'not-allowed' : 'pointer', // Show pointer only when enabled
+          overflowY: "auto", // Makes the chat area scrollable
+          padding: "10px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          height: "400px", // Set a fixed height for the chat box area (adjust as needed)
         }}
       >
-        Send
-      </button>
-    </form>
+        {chatMessages.map((message, index) => (
+          <div
+            key={index}
+            style={{
+              display: "flex",
+              justifyContent: message.type === "user" ? "flex-end" : "flex-start",
+              maxWidth: "70%",
+              alignSelf: message.type === "user" ? "flex-end" : "flex-start",
+              alignItems: "center", // Aligns content vertically
+            }}
+          >
+            {/* Chatbot Image for AI Messages */}
+            {message.type === "ai" && (
+              <img
+                src="/chatbot.jpg"
+                alt="Chatbot"
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  marginRight: "5px", // Adds space between the image and the message
+                  marginTop: "auto",
+                }}
+              />
+            )}
+            <span
+              style={{
+                backgroundColor: message.type === "user" ? "#fff" : "#f0f8ff",
+                border: "1px solid #007bff",
+                borderRadius: "5px",
+                padding: "10px",
+              }}
+            >
+              {message.message}
+            </span>
+          </div>
+        ))}
+        
+        {/* Invisible element to scroll to */}
+        <div ref={messagesEndRef} />
+      </div>
+          {/* Chat Input */}
+          <form
+            onSubmit={handleChatSubmit}
+            style={{
+              display: 'flex',
+              padding: '10px',
+              borderTop: '1px solid #ccc',
+            }}
+          >
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder="Type your question..."
+              style={{
+                flex: 1,
+                padding: '10px',
+                border: '1px solid #ccc',
+                borderRadius: '5px 0 0 5px',
+              }}
+            />
+            <button
+              type="submit"
+              disabled={isButtonDisabled} // Disable button when `isButtonDisabled` is true
+              style={{
+                backgroundColor: isButtonDisabled ? '#ccc' : '#007bff', // Change color when disabled
+                color: 'white',
+                padding: '10px 15px',
+                border: 'none',
+                borderRadius: '0 5px 5px 0',
+                cursor: isButtonDisabled ? 'not-allowed' : 'pointer', // Show pointer only when enabled
+              }}
+            >
+              Send
+            </button>
+          </form>
         </div>
       </main>
     </div>
