@@ -16,7 +16,7 @@ const companies = [
 ]
 
 export default function Home() {
-  const [selectedCompany, setSelectedCompany] = useState<string>("InnoTech Solutions");
+  const [selectedCompany, setSelectedCompany] = useState<string>("ShopEase Inc.");
   const [chatInput, setChatInput] = useState<string>("");
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
