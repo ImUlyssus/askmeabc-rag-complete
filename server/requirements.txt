@@ -1,6 +1,4 @@
-unstructured
 tiktoken
-pinecone-client
 pinecone[grpc]
 langchain-google-genai
 langchain

@@ -6,10 +6,6 @@ import hashlib
 from dotenv import load_dotenv
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from pinecone.grpc import PineconeGRPC as Pinecone
-from langchain.prompts import PromptTemplate
-from sklearn.metrics.pairwise import cosine_similarity
-from typing import List, Dict, Any
-import numpy as np
 
 # Load environment variables
 load_dotenv()
@@ -266,4 +262,4 @@ def chat():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=8080)
+    app.run(port=8080)
