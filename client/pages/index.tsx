@@ -20,6 +20,7 @@ export default function Home() {
   const [chatInput, setChatInput] = useState<string>("");
   const [isButtonDisabled, setIsButtonDisabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const BASEURL = process.env.NEXT_PUBLIC_BASEURL;
   interface Message {
     type: "user" | "ai";
     message: string;
@@ -45,7 +46,7 @@ export default function Home() {
       setChatInput('');
 
       try {
-        const response = await fetch('http://localhost:8080/chat', {
+        const response = await fetch(`${BASEURL}/chat`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
