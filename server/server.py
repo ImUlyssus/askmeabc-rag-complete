@@ -115,10 +115,10 @@ def upsert_data_to_pinecone(data_with_metadata: list[dict[str, any]]) -> None:
     """Upsert data with metadata into a Pinecone index."""
     index.upsert(vectors=data_with_metadata)
 
-# Give False if you have new data to upsert
-data_already_upserted = True
+# Give True if you have new data to upsert
+data_already_upserted = False
 
-if data_already_upserted==False:
+if data_already_upserted==True:
     # Upsert only if data_with_metadata has valid entries
     data_with_meta_data = embed_chunked_company_data("./CompanyData.json")
     upsert_data_to_pinecone(data_with_metadata=data_with_meta_data)
@@ -138,9 +138,9 @@ def get_query_embeddings(query: str) -> list[float]:
     query_embeddings = embeddings.embed_query(query)
     return query_embeddings
 
-user_query = "When was InnoTech founded? Is there any contribution to society? If yes, what is/are those?"
+# user_query = "When was InnoTech founded? Is there any contribution to society? If yes, what is/are those?"
 
-query_embeddings = get_query_embeddings(query=user_query)
+# query_embeddings = get_query_embeddings(query=user_query)
 
 def query_pinecone_index(
     query_embeddings: list[float],
@@ -243,6 +243,7 @@ def chat():
     data = request.json
     user_prompt = data.get("user_input")
     selectedCompany = data.get("selectedCompany")
+    print(selectedCompany)
     if not user_prompt:
         return jsonify({"error": "User input is required"}), 400
 
